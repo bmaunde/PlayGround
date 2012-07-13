@@ -28,8 +28,8 @@ public class HollingBerriesParallelExt {
     
     private volatile StringBuffer outputStr = new StringBuffer();
     
-    private final String produceFile = "C:/input/producec.csv";
-    private final String priceFile = "C:/input/pricesc.csv";
+    private final String produceFile = "C:/input/produce.csv";
+    private final String priceFile = "C:/input/prices.csv";
     
     private final DecimalFormat df = new DecimalFormat("0.00");
     //private final GregorianCalendar gc = new GregorianCalendar();
