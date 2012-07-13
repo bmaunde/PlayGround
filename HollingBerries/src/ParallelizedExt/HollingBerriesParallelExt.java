@@ -135,7 +135,7 @@ public class HollingBerriesParallelExt {
             Product produceProd;
             String outputSt;
             
-            System.out.println("Thread :"+ Thread.currentThread().getName());
+            //System.out.println("Thread :"+ Thread.currentThread().getName());
             String pLine = removeExtraSeparators(produceLine, separator, replacement);
 
             String[] prodAtttr = pLine.split(",");
