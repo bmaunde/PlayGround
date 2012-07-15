@@ -23,8 +23,8 @@ public class HollingBerriesParallel {
     
     private String outputStr;
     
-    private String produceFile = "C:/input/producea.csv";
-    private String priceFile = "C:/input/pricesa.csv";
+    private String produceFile = System.getProperty("user.dir") + File.separator+ "produce.csv";
+    private String priceFile = System.getProperty("user.dir") + File.separator+ "prices.csv";
     
 
     DecimalFormat df = new DecimalFormat("0.00");
@@ -265,6 +265,7 @@ class do_Fill implements Callable<String> {
             return new Integer(4);
         }
     }
+    
 }
 
 //Product

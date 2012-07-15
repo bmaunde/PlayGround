@@ -45,8 +45,8 @@ public class HollingBerries {
     private String outputStr;
     
     //input and output files
-    private String produceFile = "C:/input/produce.csv";
-    private String priceFile = "C:/input/prices.csv";
+    private String produceFile = System.getProperty("user.dir") + File.separator+ "produce.csv";
+    private String priceFile = System.getProperty("user.dir") + File.separator+ "prices.csv";
     
     //formatting objects
     DecimalFormat df = new DecimalFormat("0.00");
@@ -181,11 +181,7 @@ public class HollingBerries {
 
         //what about prime rate rules
         if (primeSuppliers.containsValue(Integer.toString(supID))) {
-            sellingPrice += 0.99;
-            int temp = sellingPrice.intValue();
-            //df.format(temp);
-            sellingPrice = new Integer(temp).doubleValue();
-            df.format(sellingPrice);
+            df.format(Math.ceil(sellingPrice));
         }
 
         //what abt the bad supplier rules?
@@ -195,11 +191,7 @@ public class HollingBerries {
             gc.add(Calendar.DAY_OF_YEAR, - 3);
             sellByDate = gc.getTime();
 
-            if (sellingPrice >= 2.00) {
-                sellingPrice -= 2.00;
-            } else {
-                sellingPrice = 0.00;
-            }
+            sellingPrice = sellingPrice >= 2.00? sellingPrice-2.00:0.00;
 
         }
 
@@ -226,17 +218,15 @@ public class HollingBerries {
         //loop through products
         while (n < products.size()) {
             tmpProd = products.get(n);
+            int len = tmpProd.getDescription().length();
+                 //changed formatting - remove spacing between R and amount
+                //put a space between all the attributes
+            p = (len >= 29)? 29:len;
+               
             if (tmpProd.getUnits() > 0 && tmpProd != null) {
+                //now for the actual formatting
                 for (int k = 0; k < tmpProd.getUnits(); k++) {
-                    //changed formatting - remove spacing between R and amount
-                    //put a space between all the attributes
-                    if (tmpProd.getDescription().length() >= 29) {
-                        p = 29;
-                    } else {
-                        p = tmpProd.getDescription().length();
-                    }
-                    //now for the actual formatting
-                    outputStr += "R" + df.format(tmpProd.getSellingPrice()) + " " + fmt.format(tmpProd.getSellByDate()) + " " + tmpProd.getDescription().substring(0, p) + "\n";
+                   outputStr += "R" + df.format(tmpProd.getSellingPrice()) + " " + fmt.format(tmpProd.getSellByDate()) + " " + tmpProd.getDescription().substring(0, p) + "\n";
                 }
             }
             n = n + 1;

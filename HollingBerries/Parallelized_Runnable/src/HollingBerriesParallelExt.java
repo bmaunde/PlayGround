@@ -1,5 +1,26 @@
 /*
  * Brian Maunde
+ * 
+ * This is the parallelized version of the program using multiple threads.
+ * This implementation has two possible things it can do. It can keep the
+ * required order and can also ignore order. The peformance difference is not 
+ * extremely huge. One line has to be uncommented at a time for one of the 
+ * options to work.
+ * 
+ * This program is super fast. On a machine that has a third generation intel 
+ * core i7 processor and 6 GB of memory with a 30GB solid state drive for 
+ * caching, this program processes an 85 MB file of 500 000 lines in less that 8
+ * seconds when using multiple threads and in at weoll less than 20 seconds when
+ * using a single thread to preserve order of output.
+ * 
+ * Just to compare, a sequential version takes 23 minutes, on the same machine, 
+ * to process 50 000 lines. A parallelized version of this using Callables takes
+ * about 6 minutes 30 seconds. It has to be noted that the parallelized version
+ * is a conservative one and also tries to preserve output ordering and 
+ * sequentialises the whole process. There is one costly block which this 
+ * version using Runnables deals with and gets rid off.
+ * 
+ * Happy Programming - Brian Maunde.
  */
 package ParallelizedExt;
 
@@ -28,14 +49,9 @@ public class HollingBerriesParallelExt {
     
     private volatile StringBuffer outputStr = new StringBuffer();
     
-    private final String produceFile = "C:/input/produce.csv";
-    private final String priceFile = "C:/input/prices.csv";
-    
-    private final DecimalFormat df = new DecimalFormat("0.00");
-    //private final GregorianCalendar gc = new GregorianCalendar();
-    private final DateFormat fmt = new SimpleDateFormat("yyyy/MM/dd");
-    
-    
+    private final String produceFile = System.getProperty("user.dir") + File.separator+ "produce.csv";
+    private final String priceFile = System.getProperty("user.dir") + File.separator+ "prices.csv";
+      
     private final char separator = ',';
     private final char replacement = '`';
 
@@ -48,8 +64,14 @@ public class HollingBerriesParallelExt {
 
     private void readAndPopulate() {
         
-        //ExecutorService executor = Executors.newCachedThreadPool(Executors.defaultThreadFactory());
-        ExecutorService executor = Executors.newFixedThreadPool(1,Executors.defaultThreadFactory());
+        /*
+         * If order needs to be kept and the performance still needs to be good
+         * uncomment out the newFixedThreadPool and comment out the 
+         * newCachedThreadPool line.
+         */
+        
+        ExecutorService executor = Executors.newCachedThreadPool(Executors.defaultThreadFactory());
+        //ExecutorService executor = Executors.newFixedThreadPool(1,Executors.defaultThreadFactory());
         
         staticFills();
         
@@ -67,13 +89,13 @@ public class HollingBerriesParallelExt {
             executor.shutdown();
             
             while (! executor.isTerminated()) {
-            try { 
-                     executor.awaitTermination(100, TimeUnit.MILLISECONDS);
-            }catch(InterruptedException e){
-                e.printStackTrace();
-            }
+                try { 
+                        executor.awaitTermination(100, TimeUnit.MILLISECONDS);
+                }catch(InterruptedException e){
+                    e.printStackTrace();
+                }
 
-        }
+           }
 
         } catch (IOException e) {
 
@@ -123,7 +145,9 @@ public class HollingBerriesParallelExt {
     class do_Fill implements Runnable {
 
         private final String produceLine;
+        private final DecimalFormat df = new DecimalFormat("0.00");
         private GregorianCalendar gc = new GregorianCalendar();
+        private final DateFormat fmt = new SimpleDateFormat("yyyy/MM/dd");
 
         public do_Fill(String pLine) {
             this.produceLine = pLine;
@@ -171,6 +195,7 @@ public class HollingBerriesParallelExt {
 
             char separator = ',';
             char replacement = '`';
+            
 
             supID = Integer.parseInt(prodAttributes[0].replace("\"", ""));
             prodCode = Integer.parseInt(prodAttributes[1].replace("\"", ""));
@@ -178,19 +203,17 @@ public class HollingBerriesParallelExt {
             description = prodAttributes[2].replace("\"", "");
             description = description.replace(replacement, separator);
 
-            devDate = prodAttributes[3];//.replace("\"", "");
+            devDate = prodAttributes[3].replace("\"", "");
             costPrice = Double.parseDouble(prodAttributes[4].replace("\"", ""));
             units = Integer.parseInt(prodAttributes[5].replace("\"", ""));
 
             try {
-                //System.out.println(devDate);
                 deliveryDate = (Date) fmt.parse(devDate);
 
             } catch (ParseException | NumberFormatException ex) {
-                System.out.println("Failed to parse date with "+ ex.getLocalizedMessage()+ devDate);
+                ex.printStackTrace();
             }
 
-            // what about prime rate
             Integer key = getKey(prodCode);
             rate = ((Integer) markup.get(key)).doubleValue();
             if (primeSuppliers.containsValue(Integer.toString(supID))) {
